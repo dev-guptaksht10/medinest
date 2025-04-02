@@ -86,21 +86,27 @@ export const postLogout = async (req, res) => {
 // **User Profile**
 export const getProfile = async (req, res) => {
   try {
-    const id = req.user._id;
+    const userId = req.user._id;
+    
+    const userProfile = await HealthPortfolio.findOne({ userId })
+      .populate("userId")
+      .select("-password");
 
-    const user = await HealthPortfolio.findById({userId: id}).populate("userId").select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!userProfile) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    res.status(200).json(user);
+    res.status(200).json(userProfile);
   } catch (error) {
     res.status(500).json({ message: "Error fetching profile", error });
   }
 };
 
+
 export const updateUser = async (req, res) => {
   try {
-    const user = req.user;
-    const updatedUser = await HealthPortfolio.findByIdAndUpdate({userId: user._id}, req.body, { new: true });
+    const userId = req.user._id;
+    const updatedUser = await HealthPortfolio.findOneAndUpdate(userId, req.body, { new: true });
     res.status(200).json({ message: "User updated successfully", updatedUser });
   } catch (error) {
     res.status(500).json({ message: "Error updating user", error });
@@ -109,7 +115,8 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    await User.findByIdAndDelete({userId: req.user._id});
+    const userId = req.user._id;
+    await User.findByIdAndDelete(userId);
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting user", error });
