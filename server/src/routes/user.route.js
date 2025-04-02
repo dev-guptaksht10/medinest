@@ -45,8 +45,8 @@ router.post("/logout", postLogout);  // checked
 
 // **User Profile Routes**
 router.post("/profile",authUser, getProfile);  // checked
-router.post("/update", updateUser);  // checked
-router.post("/delete", deleteUser); // checked
+router.post("/update", authUser, updateUser);  // checked
+router.post("/delete", authUser, deleteUser); // checked
 
 // **Appointments Routes**
 router.post("/appointments", authUser, getAppointments); // checked
