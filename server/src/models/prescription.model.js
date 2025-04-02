@@ -4,7 +4,7 @@ const prescriptionSchema = new mongoose.Schema({
     appointment: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Appointment",
-        required: true,
+        required: false,
     },
     prescribedMedicines: [
         {

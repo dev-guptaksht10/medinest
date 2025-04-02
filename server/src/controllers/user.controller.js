@@ -456,8 +456,6 @@ export const getUserReminders = async (req, res) => {
     const { userId } = req.body;
 
     const reminders = await Reminder.find({ userId })
-      .populate("medication", "prescribedMedicines") // Populate prescription details
-      .exec();
 
     if (!reminders.length) {
       return res.status(404).json({ message: "No reminders found" });
