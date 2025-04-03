@@ -8,6 +8,9 @@ import ErrorHandler from "../utils/ErrorHandler.util.js";
 
 export const authUser = ErrorWrapper(async (req, res, next) => {
     const user = typeof req.body.user === 'string' ? JSON.parse(req.body.user) : req.body.user;
+    if(!user) {
+        res.status(404).json({message: "User not found"});
+    }
     const token = user.token;
     if (!token) {
         throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");

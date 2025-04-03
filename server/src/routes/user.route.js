@@ -76,7 +76,7 @@ router.post("/feedback/get",authUser, getFeedback); // checked
 router.post("/feedback", authUser,  feedback);
 
 // **Alarms & Reminders**
-router.post("/alarms", getUserReminders); // checked
+router.post("/alarms",authUser, getUserReminders); // checked
 router.post("/alarms/add",authUser, addReminder); // checked
 router.post("/alarms/update", authUser, updateReminderStatus);
 router.post("/alarms/delete", authUser, deleteReminder); // checked
