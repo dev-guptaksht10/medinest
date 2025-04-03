@@ -1,211 +1,206 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, Building, Award, Star, Clock, Calendar, Edit2, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Phone, Building, Award, Save, LogOut, Edit2, Stethoscope } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 export function DoctorProfile() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: 'Dr. Sarah Johnson',
-    email: 'sarah.johnson@medinest.com',
-    phone: '+1 234 567 8900',
-    specialization: 'Cardiology',
-    hospital: 'MediNest General Hospital',
-    experience: '15 years',
-    rating: 4.8,
-    consultationHours: '9:00 AM - 5:00 PM',
-    availableDays: ['Monday', 'Wednesday', 'Friday'],
-    education: [
-      {
-        degree: 'MD in Medicine',
-        institution: 'Harvard Medical School',
-        year: '2008'
-      },
-      {
-        degree: 'Cardiology Specialization',
-        institution: 'Johns Hopkins Hospital',
-        year: '2012'
-      }
-    ],
-    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80'
-  });
+  const [profile, setProfile] = useState(null);
+  const [editedProfile, setEditedProfile] = useState({});
+  const navigate = useNavigate();
 
-  const handleSave = () => {
-    setIsEditing(false);
-    toast.success('Profile updated successfully');
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = Cookies.get('token');
+      if (!token) {
+        toast.error('Unauthorized: No token found');
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:4444/api/doctors/profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch profile');
+        }
+
+        // Ensure specialization and hospital are always arrays
+        data.specialization = Array.isArray(data.specialization) ? data.specialization : [data.specialization];
+        data.hospital = Array.isArray(data.hospital) ? data.hospital : [];
+
+        setProfile(data);
+        setEditedProfile(data);
+      } catch (error) {
+        toast.error(error.message);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedProfile((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleSave = async () => {
+    const token = Cookies.get('token');
+    if (!token) {
+      toast.error('Unauthorized: No token found');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:4444/api/doctors/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editedProfile.name,
+          specialization: editedProfile.specialization, // Keep as array
+          phone: editedProfile.phone,
+          address: editedProfile.address,
+          experience: editedProfile.experience,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update profile');
+      }
+
+      // Ensure specialization is an array after update
+      data.specialization = Array.isArray(data.specialization) ? data.specialization : [data.specialization];
+
+      setProfile(data);
+      setIsEditing(false);
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleLogout = () => {
+    Cookies.remove('token');
+    Cookies.remove('doctor');
+    toast.success('Logged out successfully');
+    navigate('/');
+  };
+
+  if (!profile) {
+    return <div className="text-center text-gray-300">Loading profile...</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Doctor Profile</h1>
-        <button
-          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg"
-        >
-          {isEditing ? (
-            <>
-              <Save className="w-5 h-5" />
-              Save Changes
-            </>
-          ) : (
-            <>
-              <Edit2 className="w-5 h-5" />
-              Edit Profile
-            </>
-          )}
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg"
+          >
+            {isEditing ? <><Save className="w-5 h-5" /> Save Changes</> : <><Edit2 className="w-5 h-5" /> Edit Profile</>}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
+          >
+            <LogOut className="w-5 h-5" /> Logout
+          </button>
+        </div>
       </div>
 
       <div className="bg-gray-800 rounded-lg p-6">
-        {/* Profile Header */}
         <div className="flex flex-col items-center mb-8">
-          <img
-            src={profile.avatar}
-            alt={profile.name}
-            className="w-32 h-32 rounded-full object-cover mb-4"
-          />
           <h2 className="text-2xl font-bold">{profile.name}</h2>
-          <p className="text-purple-500">{profile.specialization}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <Star className="w-5 h-5 text-yellow-500" />
-            <span>{profile.rating} Rating</span>
+          <p className="text-purple-500">{profile.specialization?.join(', ') || 'No Specialization'}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            <input
+              type="text"
+              name="name"
+              value={editedProfile.name}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="bg-transparent border-b border-gray-600 focus:outline-none w-full"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Mail className="w-5 h-5" />
+            <input
+              type="text"
+              value={profile.email}
+              disabled
+              className="bg-transparent border-b border-gray-600 w-full text-gray-400"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Phone className="w-5 h-5" />
+            <input
+              type="text"
+              name="phone"
+              value={editedProfile.phone}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="bg-transparent border-b border-gray-600 focus:outline-none w-full"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Building className="w-5 h-5" />
+            <input
+              type="text"
+              name="address"
+              value={editedProfile.address}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="bg-transparent border-b border-gray-600 focus:outline-none w-full"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Award className="w-5 h-5" />
+            <input
+              type="number"
+              name="experience"
+              value={editedProfile.experience}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className="bg-transparent border-b border-gray-600 focus:outline-none w-full"
+            />
           </div>
         </div>
 
-        {/* Basic Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
-              <User className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-400">Full Name</p>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={profile.name}
-                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    className="bg-gray-600 rounded px-2 py-1 mt-1 w-full"
-                  />
-                ) : (
-                  <p>{profile.name}</p>
-                )}
+        {/* Hospital Details */}
+        <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Stethoscope className="w-5 h-5" /> Hospital Details
+          </h3>
+          {profile.hospital?.length > 0 ? (
+            profile.hospital.map((hosp) => (
+              <div key={hosp._id} className="mt-2">
+                <p><strong>Name:</strong> {hosp.name}</p>
+                <p><strong>Address:</strong> {hosp.address}</p>
+                <p><strong>Specialty:</strong> {hosp.specialty}</p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
-              <Mail className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-400">Email</p>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    className="bg-gray-600 rounded px-2 py-1 mt-1 w-full"
-                  />
-                ) : (
-                  <p>{profile.email}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
-              <Phone className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-400">Phone</p>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    className="bg-gray-600 rounded px-2 py-1 mt-1 w-full"
-                  />
-                ) : (
-                  <p>{profile.phone}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
-              <Building className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-400">Hospital</p>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={profile.hospital}
-                    onChange={(e) => setProfile({ ...profile, hospital: e.target.value })}
-                    className="bg-gray-600 rounded px-2 py-1 mt-1 w-full"
-                  />
-                ) : (
-                  <p>{profile.hospital}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
-              <Award className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-400">Experience</p>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={profile.experience}
-                    onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
-                    className="bg-gray-600 rounded px-2 py-1 mt-1 w-full"
-                  />
-                ) : (
-                  <p>{profile.experience}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-4 bg-gray-700/50 rounded-lg">
-              <Clock className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-400">Consultation Hours</p>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={profile.consultationHours}
-                    onChange={(e) => setProfile({ ...profile, consultationHours: e.target.value })}
-                    className="bg-gray-600 rounded px-2 py-1 mt-1 w-full"
-                  />
-                ) : (
-                  <p>{profile.consultationHours}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Education</h3>
-          <div className="space-y-4">
-            {profile.education.map((edu, index) => (
-              <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
-                <h4 className="font-semibold">{edu.degree}</h4>
-                <p className="text-gray-400">{edu.institution}</p>
-                <p className="text-sm text-gray-500">{edu.year}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Available Days */}
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Available Days</h3>
-          <div className="flex flex-wrap gap-2">
-            {profile.availableDays.map((day, index) => (
-              <div key={index} className="bg-purple-600/20 text-purple-500 px-4 py-2 rounded-lg flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                {day}
-              </div>
-            ))}
-          </div>
+            ))
+          ) : (
+            <p className="text-gray-400">No hospital information available.</p>
+          )}
         </div>
       </div>
     </div>
