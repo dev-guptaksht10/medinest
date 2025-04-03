@@ -453,7 +453,7 @@ export const addReminder = async (req, res) => {
 
 export const getUserReminders = async (req, res) => {
   try {
-    const { userId } = req.user._id;
+    const userId  = req.user._id;
 
     const reminders = await Reminder.find({ userId })
 
