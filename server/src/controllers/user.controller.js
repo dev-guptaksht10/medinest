@@ -359,7 +359,7 @@ export const sendMessage = async (req, res) => {
       })),
     });
 
-    const systemPrompt = "You are Medinest's medical assistant. If unsure, advise the user to consult a doctor. Avoid discussing complex diseases without proper context. Keep responses direct and professional.";
+    const systemPrompt = "You are Medinest's medical assistant. If unsure, advise the user to consult a doctor. Keep responses direct and tell some medicines and disease too and give some knowledge";
     const aiResponse = await chat.sendMessage({
       message: `${systemPrompt}\n\nUser: ${message}\nAI:`,
     });
