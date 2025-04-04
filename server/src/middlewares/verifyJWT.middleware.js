@@ -7,51 +7,51 @@ import ErrorWrapper from "../utils/ErrorWrapper.util.js";
 import ErrorHandler from "../utils/ErrorHandler.util.js";
 
 export const authUser = ErrorWrapper(async (req, res, next) => {
-    const user = typeof req.body.user === 'string' ? JSON.parse(req.body.user) : req.body.user;
-    if(!user) {
-        res.status(404).json({message: "User not found"});
-    }
-    const token = user.token;
+    const token = req.headers.authorization?.split(" ")[1]; // Extract token from Bearer header
+
     if (!token) {
-        throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");
+        return res.status(401).json({ message: "Not authorized to access, kindly login first and try again!" });
     }
+
     try {
+        const decodedUser = jwt.verify(token, process.env.JWT_SECRET);
+        const userRecord = await User.findOne({ _id: decodedUser.userid }).select("-password");
 
-        let user = jwt.verify(token, process.env.JWT_SECRET);
-        user = await User.findOne({
-            _id: user.userid,
-        }).select("-password");
-
-        if (token != user.token) {
-            throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");
+        if (!userRecord) {
+            return res.status(404).json({ message: "User not found, auth" });
         }
-        req.user = user;
+
+        req.user = userRecord;
         next();
     } catch (error) {
-        throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");
+        return res.status(401).json({ message: "Not authorized to access, kindly login first and try again!" });
     }
-})
+});
 
 
 export const authDoctor = ErrorWrapper(async (req, res, next) => {
-    const user = typeof req.body.user === 'string' ? JSON.parse(req.body.user) : req.body.user;
-    const token = user.token;
+    const token = req.headers.authorization?.split(" ")[1]; // Extract token from Bearer header
+
     if (!token) {
-        throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");
+        return res.status(401).json({ message: "Not authorized to access, kindly login first and try again!" });
     }
+
     try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const doct = await Doctor.findOne({ _id: decoded.docid }).select("-password");
 
-        let doct = jwt.verify(token, process.env.JWT_SECRET);
-        doct = await Doctor.findOne({
-            _id: doct.docid,
-        }).select("-password");
-
-        if (token != doct.token) {
-            throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");
+        if (!doct) {
+            return res.status(404).json({ message: "Doctor not found" });
         }
+
+        // If you really need to compare tokens, ensure the doctor record has a token field
+        if (doct.token && token !== doct.token) {
+            return res.status(401).json({ message: "Session expired, please login again" });
+        }
+
         req.doct = doct;
         next();
     } catch (error) {
-        throw new ErrorHandler(401, "Not authorized to access, kindly login first and try again!");
+        return res.status(401).json({ message: "Invalid or expired token" });
     }
-})
+});
