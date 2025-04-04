@@ -337,7 +337,6 @@ export const sendMessage = async (req, res) => {
     const userId = req.user._id;
     const { message } = req.body;
 
-    console.log(message);
 
     const ai = new GoogleGenAI({ apiKey: "AIzaSyDxbA0T3SKnw8izxZyuRTxLPd0x2_m9O7Y" });
     if ( !message) {
