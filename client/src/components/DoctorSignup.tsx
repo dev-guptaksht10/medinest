@@ -1,187 +1,118 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Stethoscope } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Stethoscope } from "lucide-react";
+import toast from "react-hot-toast";
 
 export function DoctorSignup() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    specialization: '',
-    experience: '',
-    hospital: '',
-    phone: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    specialization: [""],
+    experience: "",
+    hospital: [{ name: "", address: "", specialty: "" }],
+    phone: "",
+    address: ""
   });
+
   const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error("Passwords do not match");
       return;
     }
 
-    // In a real app, this would call an API
-    localStorage.setItem('isDoctorLoggedIn', 'true');
-    toast.success('Doctor account created successfully!');
-    navigate('/doctor/dashboard');
+    try {
+      const response = await fetch("http://localhost:4444/api/doctors/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Signup failed");
+      }
+
+      toast.success("Doctor account created successfully!");
+      navigate("/doctor/login");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-6 sm:px-8 lg:px-10">
+      <div className="max-w-2xl w-full space-y-8 bg-gray-800 p-10 rounded-2xl shadow-2xl border border-gray-700">
+        <div className="text-center">
           <div className="flex justify-center">
-            <div className="bg-purple-600/10 p-3 rounded-xl">
-              <Stethoscope className="w-12 h-12 text-purple-500" />
+            <div className="bg-purple-600/20 p-4 rounded-full">
+              <Stethoscope className="w-14 h-14 text-purple-500" />
             </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Create Doctor Account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-400">
-            Already have an account?{' '}
-            <Link to="/doctor/login" className="font-medium text-purple-500 hover:text-purple-400">
+          <h2 className="mt-6 text-3xl font-bold text-white">Create Doctor Account</h2>
+          <p className="mt-3 text-sm text-gray-400">
+            Already have an account? {" "}
+            <Link to="/doctor/login" className="font-semibold text-purple-500 hover:text-purple-400">
               Sign in
             </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSignup}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Dr. John Doe"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="doctor@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="specialization" className="block text-sm font-medium text-gray-300 mb-1">
-                Specialization
-              </label>
-              <input
-                id="specialization"
-                name="specialization"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="e.g., Cardiology"
-                value={formData.specialization}
-                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="experience" className="block text-sm font-medium text-gray-300 mb-1">
-                Years of Experience
-              </label>
-              <input
-                id="experience"
-                name="experience"
-                type="number"
-                required
-                min="0"
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Years of experience"
-                value={formData.experience}
-                onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="hospital" className="block text-sm font-medium text-gray-300 mb-1">
-                Hospital
-              </label>
-              <input
-                id="hospital"
-                name="hospital"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Hospital name"
-                value={formData.hospital}
-                onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Phone number"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-300 mb-1">
-                Confirm Password
-              </label>
-              <input
-                id="confirm-password"
-                name="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-            >
+          <div className="grid grid-cols-1 gap-6">
+            <input type="text" placeholder="Full Name" className="input-field border p-3 rounded-md w-full text-black" value={formData.name} 
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+            <input type="email" placeholder="Email" className="input-field border p-3 rounded-md w-full text-black" value={formData.email} 
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+            <input type="tel" placeholder="Phone Number" className="input-field border p-3 rounded-md w-full text-black" value={formData.phone} 
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })} required />
+            <input type="text" placeholder="Address" className="input-field border p-3 rounded-md w-full text-black" value={formData.address} 
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })} required />
+            <input type="number" placeholder="Experience (Years)" className="input-field border p-3 rounded-md w-full text-black" value={formData.experience} 
+              onChange={(e) => setFormData({ ...formData, experience: e.target.value })} required />
+            <input type="password" placeholder="Password" className="input-field border p-3 rounded-md w-full text-black" value={formData.password} 
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+            <input type="password" placeholder="Confirm Password" className="input-field border p-3 rounded-md w-full text-black" value={formData.confirmPassword} 
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} required />
+            
+            {formData.specialization.map((spec, index) => (
+              <input key={index} type="text" placeholder="Specialization" className="input-field border p-3 rounded-md w-full text-black" value={spec} 
+                onChange={(e) => {
+                  const newSpecs = [...formData.specialization];
+                  newSpecs[index] = e.target.value;
+                  setFormData({ ...formData, specialization: newSpecs });
+                }} required />
+            ))}
+            
+            {formData.hospital.map((hosp, index) => (
+              <div key={index} className="space-y-3 border p-4 rounded-lg bg-gray-700">
+                <input type="text" placeholder="Hospital Name" className="input-field border p-3 rounded-md w-full text-black" value={hosp.name} 
+                  onChange={(e) => {
+                    const newHospitals = [...formData.hospital];
+                    newHospitals[index].name = e.target.value;
+                    setFormData({ ...formData, hospital: newHospitals });
+                  }} required />
+                <input type="text" placeholder="Hospital Address" className="input-field border p-3 rounded-md w-full text-black" value={hosp.address} 
+                  onChange={(e) => {
+                    const newHospitals = [...formData.hospital];
+                    newHospitals[index].address = e.target.value;
+                    setFormData({ ...formData, hospital: newHospitals });
+                  }} required />
+                <input type="text" placeholder="Specialty in Hospital" className="input-field border p-3 rounded-md w-full text-black" value={hosp.specialty} 
+                  onChange={(e) => {
+                    const newHospitals = [...formData.hospital];
+                    newHospitals[index].specialty = e.target.value;
+                    setFormData({ ...formData, hospital: newHospitals });
+                  }} required />
+              </div>
+            ))}
+            
+            <button type="submit" className="btn-primary bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all w-full">
               Create Account
             </button>
           </div>

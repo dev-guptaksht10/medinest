@@ -11,7 +11,6 @@ import MedicalHistory from "../models/med_history.model.js";
 import Reminder from "../models/reminder.model.js";
 
 import moment from "moment"; 
-
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { uploadBatchOnCloudinary } from "../utils/uploadOnCloudinary.util.js";
@@ -42,7 +41,7 @@ export const postLogin = async (req, res) => {
   try {
     const { email, password } = us;
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) return res.status(401).json({ message: "Invalid credentials,user" });
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(401).json({ message: "Invalid credentials" });
 
@@ -93,7 +92,7 @@ export const getProfile = async (req, res) => {
       .select("-password");
 
     if (!userProfile) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found,prof" });
     }
 
     res.status(200).json(userProfile);
@@ -438,6 +437,7 @@ export const getAlarms = async (req, res) => {
 export const addReminder = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log(req.body)
     const { medication, type, time, date, repeat } = req.body;
 
     const newReminder = new Reminder({ userId, medication, type, time, date, repeat });
