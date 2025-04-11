@@ -109,32 +109,10 @@ pip install -r requirements.txt  # Install dependencies
 python app.py  # Start ML server
 ```
 
-## 🔑 Environment Variables (Backend - `.env` File)
-Create a `.env` file in the `server` directory and add the following:
-```
-PORT=4444
-MONGODB_URI=mongodb+srv://guptakshat1005:KNOYc5SdnIj3GBJ0@my-cluster.lyuk8gp.mongodb.net/medinest?retryWrites=true&w=majority&appName=my-cluster
-JWT_SECRET='sada haq aithe rakh'
-API_KEY=AIzaSyDFnUuhUCOjhu_AC1R--YwKLB9au504atw
-CLOUDINARY_SECRET=hw1JXRmGTAmk27aZXahi6PzhqS8
-```
-
 ### 5️⃣ Running the Full Application
 Once all services are running, open **http://localhost:3000** in your browser. 🚀
 
-## 👥 Team rootSyndicates
-- **Akshat Gupta** - Project Lead, Backend Developer
-- **Alok** - Frontend Developer
-- **Ankit Raj** - AI/ML Engineer
-- **Aamish Hussain** - UI/UX Designer
-
 ## 📜 License
 This project is licensed under the **MIT License**. See the `LICENSE` file for details.
-
-## 💡 Future Plans
-- 🤝 Partner with pharmacies.
-- 🏥 Expand AI capabilities for epidemic disease prediction and alert the users.
-- 🔗 Integrate blockchain for tamper-proof medical records.
-- 📡 Enhance telemedicine features with AI-driven diagnostics.
 
 For more details, visit our **GitHub repository**: [MediNest Repository]((https://github.com/dev-guptaksht10/medi-nest))].
